@@ -1,0 +1,131 @@
+package kodlama.io.devs.business.concretes;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import kodlama.io.devs.business.abstracts.LanguageService;
+import kodlama.io.devs.dataAccess.abstracts.LanguageDao;
+import kodlama.io.devs.entities.concretes.Language;
+import kodlama.io.devs.entities.dtos.GetAllLanguagesDto;
+import kodlama.io.devs.entities.dtos.GetByIdLanguageDto;
+import kodlama.io.devs.entities.dtos.LanguageAddDto;
+import kodlama.io.devs.entities.dtos.LanguageUpdateDto;
+
+@Service
+public class LanguageManager implements LanguageService{
+
+	private LanguageDao languageDao;
+	
+	@Autowired
+	public LanguageManager(LanguageDao languageDao) {
+		super();
+		this.languageDao = languageDao;
+	}
+
+
+	@Override
+	public void add(LanguageAddDto languageAddDto) throws Exception {
+
+		if (isNameExist(languageAddDto.getLanguageName())) {
+			throw new Exception("Girilen isim kayıtlı");
+			}
+		if (isNameEmpty(languageAddDto.getLanguageName())) {
+			throw new Exception("İsim boş olamaz tekrar deneyin");
+			}
+		
+		Language language = new Language();
+		language.setLanguageName(languageAddDto.getLanguageName());
+		
+		this.languageDao.save(language);
+	
+	}
+	
+	@Override
+	public void update(int languageId, LanguageUpdateDto languageUpdateDto) throws Exception {
+
+		if (!isIdExist(languageId))   {throw new Exception("Geçersiz id");}
+		if (isNameEmpty(languageUpdateDto.getLanguageName())) {	throw new Exception("İsim boş olamaz tekrar deneyin");}
+		if (isNameExist(languageUpdateDto.getLanguageName())) {	throw new Exception("Girilen isim kayıtlı");}
+
+		Language language = languageDao.findById(languageId).get();
+		language.setLanguageName(languageUpdateDto.getLanguageName());
+		this.languageDao.save(language);
+		
+		
+		
+		
+		
+	}
+			
+
+	@Override
+	public List<GetAllLanguagesDto> getAll() {
+		
+		List<Language> languages = languageDao.findAll();
+		List<GetAllLanguagesDto> languagesDto = new ArrayList<GetAllLanguagesDto>();
+		
+		for (Language language : languages) {
+			GetAllLanguagesDto languageItem = new GetAllLanguagesDto();
+			languageItem.setLanguageId(language.getLanguageId());
+			languageItem.setLanguageName(language.getLanguageName());
+			languagesDto.add(languageItem);
+		}
+		
+		return languagesDto;
+	}
+	
+	@Override
+	public GetByIdLanguageDto getById(int languageId) throws Exception {
+		
+		if (!isIdExist(languageId)) {
+
+			throw new Exception("Geçersiz id");
+		}
+		
+		Language language = languageDao.getById(languageId);
+		GetByIdLanguageDto getByIdLanguageDto = new GetByIdLanguageDto();
+		getByIdLanguageDto.setLanguageName(language.getLanguageName());
+		return getByIdLanguageDto;
+	}
+
+
+	@Override
+	public void delete(int languageId) throws Exception {
+		
+		if (!isIdExist(languageId)) {
+
+			throw new Exception("Geçersiz id");
+		}
+		
+		languageDao.deleteById(languageId);
+	}
+
+	
+	private boolean isNameEmpty(String name) {
+		if (name.isBlank()) {
+			return true;
+		}
+		return false;
+	}
+
+	private boolean isNameExist(String name) {
+		for (Language language : languageDao.findAll()) {
+			if (language.getLanguageName().equals(name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+
+	private boolean isIdExist(int languageId) {
+		if (languageDao.existsById(languageId)) {
+			return true;
+		}
+		return false;
+	}
+	
+}
