@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import kodlama.io.devs.business.abstracts.TechnologyService;
+import kodlama.io.devs.business.validation.ValidationService;
 import kodlama.io.devs.dataAccess.abstracts.LanguageDao;
 import kodlama.io.devs.dataAccess.abstracts.TechnologyDao;
 import kodlama.io.devs.entities.concretes.Language;
@@ -21,12 +23,15 @@ public class TechnologyManager implements TechnologyService{
 
 	private TechnologyDao technologyDao;
 	private LanguageDao languageDao;
+	@Qualifier("technologyValidationManager")
+	private ValidationService validationService;
 	
 	@Autowired
 	public TechnologyManager(TechnologyDao technologyDao,LanguageDao languageDao) {
 		super();
 		this.technologyDao = technologyDao;
 		this.languageDao = languageDao;
+		//this.validationService= validationService;
 	}
 
 	@Override
@@ -47,8 +52,11 @@ public class TechnologyManager implements TechnologyService{
 	}
 
 	@Override
-	public void add(TechnologyAddDto technologyAddDto) {
+	public void add(TechnologyAddDto technologyAddDto) throws Exception {
      
+		validationService.validateNameIfEmpty(technologyAddDto.getTechnologyName());
+		validationService.validateNameIfExist(technologyAddDto.getTechnologyName());
+		
 		Technology technology = new Technology();
 		Language language = languageDao.findById(technologyAddDto.getLanguageId()).get();
 		technology.setTechnologyName(technologyAddDto.getTechnologyName());
@@ -65,6 +73,10 @@ public class TechnologyManager implements TechnologyService{
 	@Override
 	public void update(int technologyId, TechnologyUpdateDto technologyUpdateDto) throws Exception {
 
+		validationService.validateIdIfNotExist(technologyId);
+		validationService.validateNameIfEmpty(technologyUpdateDto.getTechnologyName());
+		validationService.validateNameIfExist(technologyUpdateDto.getTechnologyName());
+		
 		Technology technology = this.technologyDao.findById(technologyId).get();
 		Language language = this.languageDao.findById(technologyUpdateDto.getLanguageId()).get();
 		technology.setTechnologyName(technologyUpdateDto.getTechnologyName());
@@ -77,10 +89,7 @@ public class TechnologyManager implements TechnologyService{
 	@Override
 	public GetByIdTechnologyDto getById(int technologyId) throws Exception {
 
-		if (!isIdExist(technologyId)) {
-
-			throw new Exception("Geçersiz id");
-		}
+		validationService.validateIdIfNotExist(technologyId);
 		
 		Technology technology = technologyDao.getById(technologyId);
 		GetByIdTechnologyDto getByIdTechnologyDto = new GetByIdTechnologyDto();
@@ -90,11 +99,5 @@ public class TechnologyManager implements TechnologyService{
 		return getByIdTechnologyDto;
 	}
 
-	private boolean isIdExist(int languageId) {
-		if (languageDao.existsById(languageId)) {
-			return true;
-		}
-		return false;
-	}
 
 }

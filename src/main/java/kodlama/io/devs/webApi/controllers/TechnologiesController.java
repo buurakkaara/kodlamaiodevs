@@ -37,7 +37,7 @@ public class TechnologiesController {
 	}
 	
 	@PostMapping("/add")
-	public void add(@RequestBody TechnologyAddDto technologyAddDto ) {
+	public void add(@RequestBody TechnologyAddDto technologyAddDto ) throws Exception {
 		this.technologyService.add(technologyAddDto);
 	}
 	

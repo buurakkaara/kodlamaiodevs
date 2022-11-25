@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import kodlama.io.devs.business.abstracts.LanguageService;
+import kodlama.io.devs.business.validation.ValidationService;
 import kodlama.io.devs.dataAccess.abstracts.LanguageDao;
 import kodlama.io.devs.entities.concretes.Language;
 import kodlama.io.devs.entities.dtos.GetAllLanguagesDto;
@@ -19,45 +21,39 @@ public class LanguageManager implements LanguageService{
 
 	private LanguageDao languageDao;
 	
+	@Qualifier("languageValidationManager")
+	private ValidationService validationService;
+	
+	
 	@Autowired
 	public LanguageManager(LanguageDao languageDao) {
 		super();
 		this.languageDao = languageDao;
+		//this.validationService= validationService;
 	}
 
-
 	@Override
-	public void add(LanguageAddDto languageAddDto) throws Exception {
+	public void add(LanguageAddDto languageAddDto) throws Exception{
 
-		if (isNameExist(languageAddDto.getLanguageName())) {
-			throw new Exception("Girilen isim kayıtlı");
-			}
-		if (isNameEmpty(languageAddDto.getLanguageName())) {
-			throw new Exception("İsim boş olamaz tekrar deneyin");
-			}
+		validationService.validateNameIfEmpty(languageAddDto.getLanguageName());
+		validationService.validateNameIfExist(languageAddDto.getLanguageName());
 		
 		Language language = new Language();
 		language.setLanguageName(languageAddDto.getLanguageName());
 		
 		this.languageDao.save(language);
-	
 	}
 	
 	@Override
 	public void update(int languageId, LanguageUpdateDto languageUpdateDto) throws Exception {
 
-		if (!isIdExist(languageId))   {throw new Exception("Geçersiz id");}
-		if (isNameEmpty(languageUpdateDto.getLanguageName())) {	throw new Exception("İsim boş olamaz tekrar deneyin");}
-		if (isNameExist(languageUpdateDto.getLanguageName())) {	throw new Exception("Girilen isim kayıtlı");}
-
+		validationService.validateIdIfNotExist(languageId);
+		validationService.validateNameIfEmpty(languageUpdateDto.getLanguageName());
+		validationService.validateNameIfExist(languageUpdateDto.getLanguageName());
+		
 		Language language = languageDao.findById(languageId).get();
 		language.setLanguageName(languageUpdateDto.getLanguageName());
-		this.languageDao.save(language);
-		
-		
-		
-		
-		
+		this.languageDao.save(language);	
 	}
 			
 
@@ -80,10 +76,7 @@ public class LanguageManager implements LanguageService{
 	@Override
 	public GetByIdLanguageDto getById(int languageId) throws Exception {
 		
-		if (!isIdExist(languageId)) {
-
-			throw new Exception("Geçersiz id");
-		}
+		validationService.validateIdIfNotExist(languageId);
 		
 		Language language = languageDao.getById(languageId);
 		GetByIdLanguageDto getByIdLanguageDto = new GetByIdLanguageDto();
@@ -95,37 +88,8 @@ public class LanguageManager implements LanguageService{
 	@Override
 	public void delete(int languageId) throws Exception {
 		
-		if (!isIdExist(languageId)) {
-
-			throw new Exception("Geçersiz id");
-		}
-		
+		validationService.validateIdIfNotExist(languageId);
 		languageDao.deleteById(languageId);
-	}
-
-	
-	private boolean isNameEmpty(String name) {
-		if (name.isBlank()) {
-			return true;
-		}
-		return false;
-	}
-
-	private boolean isNameExist(String name) {
-		for (Language language : languageDao.findAll()) {
-			if (language.getLanguageName().equals(name)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-
-	private boolean isIdExist(int languageId) {
-		if (languageDao.existsById(languageId)) {
-			return true;
-		}
-		return false;
 	}
 	
 }
