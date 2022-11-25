@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import kodlama.io.devs.business.abstracts.TechnologyService;
+import kodlama.io.devs.core.utilities.results.DataResult;
+import kodlama.io.devs.core.utilities.results.Result;
 import kodlama.io.devs.entities.dtos.GetAllTechnologiesDto;
 import kodlama.io.devs.entities.dtos.GetByIdTechnologyDto;
 import kodlama.io.devs.entities.dtos.TechnologyAddDto;
@@ -32,27 +34,27 @@ public class TechnologiesController {
 	}
 	
 	@GetMapping("/getall")
-	public List<GetAllTechnologiesDto> getAll(){
+	public DataResult<List<GetAllTechnologiesDto>> getAll(){
 		return this.technologyService.getAll();
 	}
 	
 	@PostMapping("/add")
-	public void add(@RequestBody TechnologyAddDto technologyAddDto ) throws Exception {
-		this.technologyService.add(technologyAddDto);
+	public Result add(@RequestBody TechnologyAddDto technologyAddDto ) throws Exception {
+		return this.technologyService.add(technologyAddDto);
 	}
 	
 	@DeleteMapping("/delete/{technologyId}")
-	public void delete(@PathVariable int technologyId) throws Exception {
-		technologyService.delete(technologyId);
+	public Result delete(@PathVariable int technologyId) throws Exception {
+		return this.technologyService.delete(technologyId);
 	}
 	
 	@PutMapping("/update/{technologyId}")
-	public void update(@PathVariable int technologyId , @RequestBody TechnologyUpdateDto technologyUpdateDto) throws Exception {
-		this.technologyService.update(technologyId, technologyUpdateDto);
+	public Result update(@PathVariable int technologyId , @RequestBody TechnologyUpdateDto technologyUpdateDto) throws Exception {
+		return this.technologyService.update(technologyId, technologyUpdateDto);
 	}
 	
 	@GetMapping("/getById")
-	public GetByIdTechnologyDto getById(@RequestParam int technologyId) throws Exception{
+	public DataResult<GetByIdTechnologyDto> getById(@RequestParam int technologyId) throws Exception{
 		return this.technologyService.getById(technologyId);
 	}
 	

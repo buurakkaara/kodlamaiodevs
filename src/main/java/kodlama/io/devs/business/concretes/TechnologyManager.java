@@ -9,6 +9,10 @@ import org.springframework.stereotype.Service;
 
 import kodlama.io.devs.business.abstracts.TechnologyService;
 import kodlama.io.devs.business.validation.ValidationService;
+import kodlama.io.devs.core.utilities.results.DataResult;
+import kodlama.io.devs.core.utilities.results.Result;
+import kodlama.io.devs.core.utilities.results.SuccessDataResult;
+import kodlama.io.devs.core.utilities.results.SuccessResult;
 import kodlama.io.devs.dataAccess.abstracts.LanguageDao;
 import kodlama.io.devs.dataAccess.abstracts.TechnologyDao;
 import kodlama.io.devs.entities.concretes.Language;
@@ -23,19 +27,22 @@ public class TechnologyManager implements TechnologyService{
 
 	private TechnologyDao technologyDao;
 	private LanguageDao languageDao;
-	@Qualifier("technologyValidationManager")
 	private ValidationService validationService;
 	
 	@Autowired
-	public TechnologyManager(TechnologyDao technologyDao,LanguageDao languageDao) {
+	public TechnologyManager(
+			TechnologyDao technologyDao,
+			LanguageDao languageDao,
+			@Qualifier("technologyValidationManager")
+			ValidationService validationService) {
 		super();
 		this.technologyDao = technologyDao;
 		this.languageDao = languageDao;
-		//this.validationService= validationService;
+		this.validationService= validationService;
 	}
 
 	@Override
-	public List<GetAllTechnologiesDto> getAll() {
+	public DataResult<List<GetAllTechnologiesDto>> getAll() {
 		
 		List<Technology> technologies = technologyDao.findAll();
 		List<GetAllTechnologiesDto> technologiesDto = new ArrayList<GetAllTechnologiesDto>();
@@ -48,11 +55,11 @@ public class TechnologyManager implements TechnologyService{
 			technologiesDto.add(technologyItem);
 		}
 		
-		return technologiesDto ;
+		return new SuccessDataResult<>(technologiesDto, "Data listelendi");
 	}
 
 	@Override
-	public void add(TechnologyAddDto technologyAddDto) throws Exception {
+	public Result add(TechnologyAddDto technologyAddDto) throws Exception {
      
 		validationService.validateNameIfEmpty(technologyAddDto.getTechnologyName());
 		validationService.validateNameIfExist(technologyAddDto.getTechnologyName());
@@ -62,16 +69,17 @@ public class TechnologyManager implements TechnologyService{
 		technology.setTechnologyName(technologyAddDto.getTechnologyName());
 		technology.setLanguage(language);
 		technologyDao.save(technology);
-		
+		return new SuccessResult("Data eklendi");
 	}
 
 	@Override
-	public void delete(int technologyId) {
+	public Result delete(int technologyId) {
 		technologyDao.deleteById(technologyId);
+		return new SuccessResult("Data silindi");
 	}
 
 	@Override
-	public void update(int technologyId, TechnologyUpdateDto technologyUpdateDto) throws Exception {
+	public Result update(int technologyId, TechnologyUpdateDto technologyUpdateDto) throws Exception {
 
 		validationService.validateIdIfNotExist(technologyId);
 		validationService.validateNameIfEmpty(technologyUpdateDto.getTechnologyName());
@@ -83,11 +91,11 @@ public class TechnologyManager implements TechnologyService{
 		technology.setLanguage(language);
 		this.technologyDao.save(technology);
 
-		
+		return new SuccessResult("Data güncellendi");
 	}
 
 	@Override
-	public GetByIdTechnologyDto getById(int technologyId) throws Exception {
+	public DataResult<GetByIdTechnologyDto> getById(int technologyId) throws Exception {
 
 		validationService.validateIdIfNotExist(technologyId);
 		
@@ -96,7 +104,7 @@ public class TechnologyManager implements TechnologyService{
 		getByIdTechnologyDto.setTechnologyName(technology.getTechnologyName());
 		getByIdTechnologyDto.setLanguageName(technology.getLanguage().getLanguageName());
 		
-		return getByIdTechnologyDto;
+		return new SuccessDataResult<GetByIdTechnologyDto>(getByIdTechnologyDto, "Data listelendi");
 	}
 
 
